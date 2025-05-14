@@ -7,18 +7,22 @@
 #include <linux/netfilter.h>		/* for NF_ACCEPT */
 #include <errno.h>
 #include "ip.h"
+#include <fcntl.h>
 #include "structure.h"
 #include <string>
 #include <cstring>
-
+#include <ctime>
+#include <fstream>
+#include <iostream>
+#include <set>
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
 /* returns packet id */
 using namespace std;
 
 void usage() {
-    printf("syntax : netfilter-test <host>\n");
-    printf("sample : netfilter-test test.gilgil.net\n");
+    printf("syntax : 1m-block <site list file>\n");
+    printf("sample : 1m-block top-1m.txt\n");
 }
 
 void dump(unsigned char* buf, int size) {
@@ -31,7 +35,7 @@ void dump(unsigned char* buf, int size) {
 	printf("\n");
 }
 
-static string host;
+set<string> hosts;
 
 static uint32_t print_pkt (struct nfq_data *tb)
 {
@@ -71,6 +75,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
     char *host_field = strstr((char*)http, "\r\nHost: ");
     if (host_field)
       {
+    	const clock_t begin = clock();
       	host_field += strlen("\r\nHost: ");
         char *end = strchr(host_field, '\r');
 
@@ -80,12 +85,18 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
         } else {
             len = strlen(host_field);
         }
+		string key(host_field, len);
 
-        if (len == host.size() && memcmp(host_field, host.c_str(), len) == 0)
+        if (hosts.count(key))
           {
-          	printf("Blocked : %s\n", host.c_str());
+          	const clock_t end_time = clock();
+            const clock_t diff = end_time - begin;
+            cout << "Blocked : " << key.c_str() << '\n' << "time diff : " << diff << '\n';
             return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
           }
+    	const clock_t end_time = clock();
+    	const clock_t diff = end_time - begin;
+    	cout << "Not blocked | time diff : " << diff << '\n';
       }
 	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
@@ -97,6 +108,7 @@ int main(int argc, char **argv)
 	struct nfq_handle *h;
 	struct nfq_q_handle *qh;
 	int fd;
+
 	int rv;
 	uint32_t queue = 0;
 	char buf[4096] __attribute__ ((aligned));
@@ -107,7 +119,51 @@ int main(int argc, char **argv)
       return 0;
     }
 
-	host = argv[1];
+    const clock_t begin = clock();
+    string site_file = argv[1];
+
+
+	ifstream ifd(site_file.c_str());
+    if (!ifd.is_open())
+    {
+		cerr << "Can't open site file " << site_file << '\n';
+        return 1;
+    }
+	string line;
+    while (std::getline(ifd, line))
+    {
+      	if(!line.empty() && line[0] != '\r')
+        {
+	    	line.pop_back();
+        }
+        hosts.insert(line);
+    }
+
+    ifd.close();
+    const clock_t end = clock();
+
+    const clock_t diff = end - begin;
+
+
+    char cmd[128];
+    sprintf(cmd, "top -b -n 1 -p %d | tail -n 8 | awk '{print $6}'", getpid()); //명령어 작성
+
+	FILE* pipe = popen(cmd, "r");
+	if (!pipe) {
+		perror("popen");
+		return -1;
+	}
+
+	char memsize[64];
+	if (fgets(memsize, 64, pipe) == nullptr) {
+		pclose(pipe);
+		std::cerr << "memory read failed\n";
+		return -1;
+	}
+	pclose(pipe);
+
+	cout << "time diff (sec) : " << float(diff) / CLOCKS_PER_SEC << '\n' << "memory usage : " << memsize << '\n';
+
 
 	printf("opening library handle\n");
 	h = nfq_open();
@@ -115,6 +171,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "error during nfq_open()\n");
 		exit(1);
 	}
+
 
 	printf("unbinding existing nf_queue handler for AF_INET (if any)\n");
 	if (nfq_unbind_pf(h, AF_INET) < 0) {
