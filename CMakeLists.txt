@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(netfilter-test LANGUAGES CXX)
+project(1m-block LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(netfilter-test
+add_executable(1m-block
         main.cpp
         structure.h
         ip.h)
 
-target_link_libraries(netfilter-test netfilter_queue)
+target_link_libraries(1m-block netfilter_queue)
