@@ -159,7 +159,6 @@ int main(int argc, char **argv)
 
 	cout << "time diff (sec) : " << float(diff) / CLOCKS_PER_SEC << '\n' << "memory usage : " << memsize << '\n';
 
-    return 0;
 	printf("opening library handle\n");
 	h = nfq_open();
 	if (!h) {
