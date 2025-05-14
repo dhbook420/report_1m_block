@@ -48,7 +48,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
     unsigned char *pkt;
 	int ret = nfq_get_payload(nfa, &pkt);
     if (ret >= 0) {
-		printf("\nreceived %d bytes\n", ret);
+		//printf("\nreceived %d bytes\n", ret);
 		//dump(pkt, ret);
 	}
 
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 
 	for (;;) {
 		if ((rv = recv(fd, buf, sizeof(buf), 0)) >= 0) {
-			printf("\n\npkt received\n");
+			//printf("\n\npkt received\n");
 			nfq_handle_packet(h, buf, rv);
 			continue;
 		}
