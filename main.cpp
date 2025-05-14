@@ -79,7 +79,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
           {
           	const clock_t end_time = clock();
             const clock_t diff = end_time - begin;
-            cout << "Blocked : " << key.c_str() << '\n' << "time diff (sec): " << float(diff) << '\n';
+            cout << "Blocked : " << key.c_str() << '\n' << "time diff (sec): " << float(diff) / CLOCKS_PER_SEC << '\n';
             return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
           }
     	const clock_t end_time = clock();
