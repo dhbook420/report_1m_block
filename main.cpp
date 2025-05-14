@@ -79,7 +79,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
           {
           	const clock_t end_time = clock();
             const clock_t diff = end_time - begin;
-            cout << "Blocked : " << key.c_str() << '\n' << "time diff : " << diff << '\n';
+            cout << "Blocked : " << key.c_str() << '\n' << "time diff (sec): " << float(diff) << '\n';
             return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
           }
     	const clock_t end_time = clock();
@@ -124,15 +124,18 @@ int main(int argc, char **argv)
         {
 	    	line.pop_back();
         }
+        auto pos = line.find(',');
+        line = line.substr(pos + 1);
         hosts.insert(line);
     }
 
     ifd.close();
-
+	/*
     for (auto it = hosts.begin(); it != hosts.end(); advance(it, 1000))
     {
-    	cout << *it << '\n';
+    	cout << *it << (*it).size() <<'\n';
     }
+    */
 
     const clock_t end = clock();
     const clock_t diff = end - begin;
@@ -163,6 +166,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "error during nfq_open()\n");
 		exit(1);
 	}
+
 
 
 	printf("unbinding existing nf_queue handler for AF_INET (if any)\n");
