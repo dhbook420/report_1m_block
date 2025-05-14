@@ -84,7 +84,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
           }
     	const clock_t end_time = clock();
     	const clock_t diff = end_time - begin;
-    	cout << "Not blocked | time diff : " << diff << '\n';
+    	cout << "Not blocked | time diff : " << float(diff) / CLOCKS_PER_SEC << '\n';
       }
 	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	string line;
     while (std::getline(ifd, line))
     {
-      	if(!line.empty() && line[0] != '\r')
+      	if(!line.empty() && line.back() != '\r')
         {
 	    	line.pop_back();
         }
