@@ -21,8 +21,8 @@
 using namespace std;
 
 void usage() {
-    printf("syntax : 1m-block <site list file>\n");
-    printf("sample : 1m-block top-1m.txt\n");
+    printf("syntax : sudo 1m-block <site list file>\n");
+    printf("sample : sudo 1m-block top-1m.txt\n");
 }
 
 set<string> hosts;
