@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	string line;
     while (std::getline(ifd, line))
     {
-      	if(!line.empty() && line.back() != '\r')
+      	if(!line.empty() && line.back() == '\r')
         {
 	    	line.pop_back();
         }
