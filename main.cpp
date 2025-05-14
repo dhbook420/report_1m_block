@@ -79,12 +79,12 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
           {
           	const clock_t end_time = clock();
             const clock_t diff = end_time - begin;
-            cout << "Blocked : " << key.c_str() << '\n' << "time diff (sec): " << float(diff) / CLOCKS_PER_SEC << '\n';
+            cout << "Blocked : " << key.c_str() << '\n' << "time diff : " << float(diff) << " ms" <<'\n';
             return nfq_set_verdict(qh, id, NF_DROP, 0, NULL);
           }
     	const clock_t end_time = clock();
     	const clock_t diff = end_time - begin;
-    	cout << "Not blocked | time diff : " << float(diff) / CLOCKS_PER_SEC << '\n';
+    	cout << "Not blocked | time diff : " << float(diff) << " ms" << '\n';
       }
 	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 	}
 	pclose(pipe);
 
-	cout << "time diff (sec) : " << float(diff) / CLOCKS_PER_SEC << '\n' << "memory usage : " << memsize << '\n';
+	cout << "time diff : " << float(diff) << " ms\n memory usage : " << memsize << '\n';
 
 	printf("opening library handle\n");
 	h = nfq_open();
