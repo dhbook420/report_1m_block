@@ -25,16 +25,6 @@ void usage() {
     printf("sample : 1m-block top-1m.txt\n");
 }
 
-void dump(unsigned char* buf, int size) {
-	int i;
-	for (i = 0; i < size; i++) {
-		if (i != 0 && i % 16 == 0)
-			printf("\n");
-		printf("%02X ", buf[i]);
-	}
-	printf("\n");
-}
-
 set<string> hosts;
 
 static uint32_t print_pkt (struct nfq_data *tb)
@@ -46,8 +36,6 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	if (ph) {
 		id = ntohl(ph->packet_id);
 	}
-
-
 	return id;
 }
 	
@@ -61,7 +49,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	int ret = nfq_get_payload(nfa, &pkt);
     if (ret >= 0) {
 		printf("payload_len=%d\n", ret);
-		dump(pkt, ret);
+		//dump(pkt, ret);
 	}
 
     IpHdr *ip = (IpHdr *)pkt;
@@ -140,13 +128,17 @@ int main(int argc, char **argv)
     }
 
     ifd.close();
-    const clock_t end = clock();
 
+    for (auto it = hosts.begin(); it != hosts.end(); advance(it, 1000))
+    {
+    	cout << *it << '\n';
+    }
+
+    const clock_t end = clock();
     const clock_t diff = end - begin;
 
-
     char cmd[128];
-    sprintf(cmd, "top -b -n 1 -p %d | tail -n 8 | awk '{print $6}'", getpid()); //명령어 작성
+    sprintf(cmd, "top -b -n 1 -p %d | tail -n +8 | awk '{print $6}'", getpid()); //명령어 작성
 
 	FILE* pipe = popen(cmd, "r");
 	if (!pipe) {
@@ -164,7 +156,7 @@ int main(int argc, char **argv)
 
 	cout << "time diff (sec) : " << float(diff) / CLOCKS_PER_SEC << '\n' << "memory usage : " << memsize << '\n';
 
-
+    return 0;
 	printf("opening library handle\n");
 	h = nfq_open();
 	if (!h) {
